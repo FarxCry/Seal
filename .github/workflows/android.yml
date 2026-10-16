@@ -1,44 +1,33 @@
-name: Build Release APK
+name: Build Down-by-Usman APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ "main" ]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: 'gradle'
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
-    - uses: gradle/actions/setup-gradle@v3
+      - name: Build Universal APK
+        run: ./gradlew assembleDebug -PnoSplits --no-daemon
 
-    - run: gradle assembleRelease
-
-    - name: Sign app APK
-      id: sign_app
-      uses: ilharp/sign-android-release@nightly
-      with:
-        releaseDir: app/build/outputs/apk/release
-        signingKey: ${{ secrets.SIGNING_KEY }}
-        keyAlias: ${{ secrets.ALIAS }}
-        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-        keyPassword: ${{ secrets.KEY_PASSWORD }}
-
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: signed-apks
-        path: app/build/outputs/apk/release/*-arm64-v8a-release-signed.apk
-        if-no-files-found: error
-        retention-days: 20
+      - name: Upload Down-by-Usman APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Down-by-Usman-APK
+          path: app/build/outputs/**/*.apk
